@@ -8,6 +8,7 @@ from core import views
 
 router = routers.SimpleRouter()
 router.register(r'categories', views.CategoryModelViewSet, basename="category")
+router.register(r'transactions', views.TransactionModelViewSet, basename="transaction")
 
 
 urlpatterns = [
