@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters',
 
     'core',
@@ -127,6 +128,12 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # first two are defaults, but i using different strategy, don't forget to add rest_framework.authtoken to settings list.
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication'
+        'rest_framework.authentication.TokenAuthentication',
+    ],
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     # instead limit and offset will have page, as is... BUT IT WILL EFFECT ALL LIST ENDPOINTS!!!
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

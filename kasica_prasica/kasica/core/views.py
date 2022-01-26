@@ -1,6 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Currency, Category, Transaction
@@ -15,15 +16,20 @@ class CurrencyListAPIView(ListAPIView):
 
 
 class CategoryModelViewSet(ModelViewSet):
-    queryset = Category.objects.all()
+    permission_classes = (IsAuthenticated,)
+    # queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+    def get_queryset(self):
+        """ return related categories"""
+        return Category.objects.filter(user=self.request.user)
 
 
 class TransactionModelViewSet(ModelViewSet):
-    # queryset = Transaction.objects.all()
+    # authentication is required with Api Key (Token <value>) in Authorization header
+    permission_classes = (IsAuthenticated,)
 
-    # next queryset will speed up query, a lot !!!
-    queryset = Transaction.objects.select_related("currency", "category")
+    # queryset = Transaction.objects.all()
 
     serializer_class = ReadTransactionSerializer
 
@@ -34,7 +40,17 @@ class TransactionModelViewSet(ModelViewSet):
 
     filterset_fields = ("currency__code",)
 
+    def get_queryset(self):
+        # next queryset will speed up query, a lot !!!
+        return Transaction.objects.select_related("currency", "category", "user").filter(user=self.request.user)
+
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
             return ReadTransactionSerializer
         return WriteTransactionSerializer
+
+    # def perform_create(self, serializer):
+    #     """
+    #     will allow only auth user to write to itself.
+    #     """
+    #     serializer.save(user=self.request.user)
