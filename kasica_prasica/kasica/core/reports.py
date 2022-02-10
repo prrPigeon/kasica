@@ -25,7 +25,7 @@ class ReportParams:
 def transaction_report(params: ReportParams):
     data = []
     """
-    return report as list of objects
+    return report as list of objects if format
     [
     {
         'category': n,

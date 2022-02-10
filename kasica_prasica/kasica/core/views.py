@@ -1,11 +1,16 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+
+from rest_framework.renderers import JSONRenderer
+from rest_framework_xml.renderers import XMLRenderer
+
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
-from rest_framework.response import Response
 
+from rest_framework.response import Response
 from core.reports import ReportEntry, transaction_report
 
 from .models import Currency, Category, Transaction
@@ -21,6 +26,8 @@ class CurrencyListAPIView(ListAPIView):
     # if you don't wont to show pa0gination
     # pagination_class = None
 
+    # you can specified rendering format only for this class as
+    renderer_classes = [JSONRenderer, XMLRenderer]
 
 class CategoryModelViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
@@ -48,7 +55,7 @@ class TransactionModelViewSet(ModelViewSet):
     filterset_fields = ("currency__code",)
 
     def get_queryset(self):
-        # next queryset will speed up query, a lot !!!
+        # next queryset will speed up query, a lot with select_related( by lot means, from 306 down to 6!!!!) !!!
         return Transaction.objects.select_related("currency", "category", "user").filter(user=self.request.user)
 
     def get_serializer_class(self):
