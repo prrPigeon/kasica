@@ -3,9 +3,16 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from core.reports import ReportEntry, transaction_report
 
 from .models import Currency, Category, Transaction
-from .serializers import CurrencySerializer, CategorySerializer, ReadTransactionSerializer, WriteTransactionSerializer
+from .serializers import (
+    CurrencySerializer, CategorySerializer, ReadTransactionSerializer, 
+    ReportEntrySerializer, WriteTransactionSerializer, ReportParamsSerializer
+)
 
 
 class CurrencyListAPIView(ListAPIView):
@@ -54,3 +61,19 @@ class TransactionModelViewSet(ModelViewSet):
     #     will allow only auth user to write to itself.
     #     """
     #     serializer.save(user=self.request.user)
+
+
+class TransactionReportAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+
+        params_serializer = ReportParamsSerializer(data=request.GET, context={"request": request })
+        # if user is not authenticated
+        params_serializer.is_valid(raise_exception=True)
+        # and if it is
+        params = params_serializer.save()
+
+        data = transaction_report(params)
+        serializer = ReportEntrySerializer(instance=data, many=True)
+        return Response(data=serializer.data)

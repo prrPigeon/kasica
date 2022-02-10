@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from rest_framework.authtoken.admin import User
 
+from core.reports import ReportParams
+
 from .models import Currency, Category, Transaction
 
 
@@ -20,7 +22,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class WriteTransactionSerializer(serializers.ModelSerializer):
 
-    # after decalring this instance, it's safe to remove perform_create method from viewss
+    # after declare this instance, it's safe to remove perform_create method from viewss
     user = serializers.HiddenField(default=serializers.CurrentUserDefault()) #>> new user
 
     # will allow to show code (which is unique) instead of id
@@ -49,6 +51,7 @@ class WriteTransactionSerializer(serializers.ModelSerializer):
         # self.fields["category"].queryset = Category.objects.filter(user=user) # or
         self.fields["category"].queryset = user.categories.all()
 
+
 class ReadUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -76,3 +79,23 @@ class ReadTransactionSerializer(serializers.ModelSerializer):
         )
         read_only_fields = fields
 
+
+class ReportEntrySerializer(serializers.Serializer):
+    category = CategorySerializer()
+    total = serializers.DecimalField(max_digits=15, decimal_places=2)
+    count = serializers.IntegerField()
+    avg = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+
+
+class ReportParamsSerializer(serializers.Serializer):
+    """To achive returning personal reports to authenticated user,
+    cause previous return all bulk reports!!!"""
+    
+    start_date = serializers.DateTimeField()
+    end_date = serializers.DateTimeField()
+    # current user
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    def create(self, validated_data):
+        return ReportParams(**validated_data)
